@@ -42,9 +42,6 @@ class AudioFragment : Fragment(), SirenClassifier.DetectorListener {
         sirenClassifier = SirenClassifier()
         sirenClassifier.initialize(requireContext())
         sirenClassifier.setDetectorListener(this)
-        snapClassifier = SnapClassifier()
-        snapClassifier.initialize(requireContext())
-        snapClassifier.setDetectorListener(this)
     }
 
     override fun onPause() {
