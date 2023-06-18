@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace 'com.example.pj4test'
+    namespace 'com.example.drive'
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.example.pj4test"
+        applicationId 'com.example.drive'
         minSdk 23
         targetSdk 33
         versionCode 1
@@ -32,13 +32,13 @@ android {
     }
 
     // ADDED: prevent compressing model file
-    aaptOptions {
-        noCompress 'tflite'
-    }
 
     // ADDED: view binding
     buildFeatures {
         viewBinding true
+    }
+    androidResources {
+        noCompress 'tflite'
     }
 }
 

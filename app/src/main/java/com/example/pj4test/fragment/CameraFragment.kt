@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.pj4test.fragment
+package com.example.drive.fragment
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
@@ -36,14 +36,15 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.pj4test.ProjectConfiguration
-import java.util.LinkedList
+import com.example.drive.ProjectConfiguration
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
-import com.example.pj4test.cameraInference.PersonClassifier
-import com.example.pj4test.databinding.FragmentCameraBinding
+import com.example.drive.cameraInference.EmergencyVehicleClassifier
+import com.example.drive.databinding.FragmentCameraBinding
 import org.tensorflow.lite.task.vision.detector.Detection
 
-class CameraFragment : Fragment(), PersonClassifier.DetectorListener {
+
+class CameraFragment : Fragment(), EmergencyVehicleClassifier.DetectorListener {
     private val TAG = "CameraFragment"
 
     private var _fragmentCameraBinding: FragmentCameraBinding? = null
@@ -53,7 +54,7 @@ class CameraFragment : Fragment(), PersonClassifier.DetectorListener {
     
     private lateinit var personView: TextView
     
-    private lateinit var personClassifier: PersonClassifier
+    private lateinit var emergencyVehicleClassifier: EmergencyVehicleClassifier
     private lateinit var bitmapBuffer: Bitmap
     private var preview: Preview? = null
     private var imageAnalyzer: ImageAnalysis? = null
@@ -84,9 +85,9 @@ class CameraFragment : Fragment(), PersonClassifier.DetectorListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        personClassifier = PersonClassifier()
-        personClassifier.initialize(requireContext())
-        personClassifier.setDetectorListener(this)
+        emergencyVehicleClassifier = EmergencyVehicleClassifier()
+        emergencyVehicleClassifier.initialize(requireContext())
+        emergencyVehicleClassifier.setDetectorListener(this)
 
         // Initialize our background executor
         cameraExecutor = Executors.newSingleThreadExecutor()
@@ -181,7 +182,7 @@ class CameraFragment : Fragment(), PersonClassifier.DetectorListener {
         val imageRotation = image.imageInfo.rotationDegrees
 
         // Pass Bitmap and rotation to the object detector helper for processing and detection
-        personClassifier.detect(bitmapBuffer, imageRotation)
+        emergencyVehicleClassifier.detect(bitmapBuffer, imageRotation)
     }
 
     // Update UI after objects have been detected. Extracts original image height/width
@@ -193,23 +194,17 @@ class CameraFragment : Fragment(), PersonClassifier.DetectorListener {
         imageWidth: Int
     ) {
         activity?.runOnUiThread {
-            // Pass necessary information to OverlayView for drawing on the canvas
-            fragmentCameraBinding.overlay.setResults(
-                results ?: LinkedList<Detection>(),
-                imageHeight,
-                imageWidth
-            )
-            
+
             // find at least one bounding box of the person
-            val isPersonDetected: Boolean = results!!.find { it.categories[0].label == "person" } != null
+            val isPersonDetected: Boolean = results!!.find { it.categories[0].label == "car" || it.categories[0].label == "truck" } != null
             
             // change UI according to the result
             if (isPersonDetected) {
-                personView.text = "PERSON"
+                personView.text = "EMERGENCY VEHICLE DETECTED"
                 personView.setBackgroundColor(ProjectConfiguration.activeBackgroundColor)
                 personView.setTextColor(ProjectConfiguration.activeTextColor)
             } else {
-                personView.text = "NO PERSON"
+                personView.text = "EVERYTHING IS FINE"
                 personView.setBackgroundColor(ProjectConfiguration.idleBackgroundColor)
                 personView.setTextColor(ProjectConfiguration.idleTextColor)
             }

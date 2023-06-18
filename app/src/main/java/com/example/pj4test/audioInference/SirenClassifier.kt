@@ -1,4 +1,4 @@
-package com.example.pj4test.audioInference
+package com.example.drive.audioInference
 
 import android.content.Context
 import android.media.AudioRecord
@@ -11,7 +11,7 @@ import java.util.*
 import kotlin.concurrent.scheduleAtFixedRate
 
 
-class SnapClassifier {
+class SirenClassifier {
     // Libraries for audio classification
     lateinit var classifier: AudioClassifier
     lateinit var recorder: AudioRecord
@@ -64,7 +64,7 @@ class SnapClassifier {
      * This method make recorder start recording.
      * After this function, the microphone is ready for reading.
      */
-    private fun startRecording() {
+    fun startRecording() {
         recorder.startRecording()
         Log.d(TAG, "record started!")
     }
@@ -75,7 +75,7 @@ class SnapClassifier {
      * This method make recorder stop recording.
      * After this function, the microphone is unavailable for reading.
      */
-    private fun stopRecording() {
+    fun stopRecording() {
         recorder.stop()
         Log.d(TAG, "record stopped.")
     }
@@ -99,7 +99,7 @@ class SnapClassifier {
         val output = classifier.classify(tensor)
         Log.d(TAG, output.toString())
 
-        return output[0].categories.find { it.label == "Finger snapping" }!!.score
+        return output[0].categories.find { it.label == "Fire engine, fire truck (siren)" || it.label == "Ambulance (siren)" || it.label == "Siren" }!!.score
     }
 
     fun startInferencing() {
@@ -149,9 +149,9 @@ class SnapClassifier {
     companion object {
         const val TAG = "HornClassifier"
 
-        const val REFRESH_INTERVAL_MS = 33L
+        const val REFRESH_INTERVAL_MS = 600L
         const val YAMNET_MODEL = "yamnet_classification.tflite"
 
-        const val THRESHOLD = 0.3f
+        const val THRESHOLD = 0.003f
     }
 }

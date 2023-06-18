@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.pj4test
+package com.example.drive
 
 import android.content.Context
 import android.graphics.Canvas

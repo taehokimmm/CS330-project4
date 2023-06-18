@@ -1,4 +1,4 @@
-package com.example.pj4test
+package com.example.drive
 
 import android.Manifest.permission.CAMERA
 import android.Manifest.permission.RECORD_AUDIO

@@ -1,4 +1,4 @@
-package com.example.pj4test.fragment
+package com.example.drive.fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -6,11 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import com.example.pj4test.ProjectConfiguration
-import com.example.pj4test.audioInference.SnapClassifier
-import com.example.pj4test.databinding.FragmentAudioBinding
+import com.example.drive.ProjectConfiguration
+import com.example.drive.audioInference.SirenClassifier
+import com.example.drive.databinding.FragmentAudioBinding
 
-class AudioFragment: Fragment(), SnapClassifier.DetectorListener {
+class AudioFragment : Fragment(), SirenClassifier.DetectorListener {
     private val TAG = "AudioFragment"
 
     private var _fragmentAudioBinding: FragmentAudioBinding? = null
@@ -19,7 +19,7 @@ class AudioFragment: Fragment(), SnapClassifier.DetectorListener {
         get() = _fragmentAudioBinding!!
 
     // classifiers
-    lateinit var snapClassifier: SnapClassifier
+    lateinit var sirenClassifier: SirenClassifier
 
     // views
     lateinit var snapView: TextView
@@ -39,6 +39,9 @@ class AudioFragment: Fragment(), SnapClassifier.DetectorListener {
 
         snapView = fragmentAudioBinding.SnapView
 
+        sirenClassifier = SirenClassifier()
+        sirenClassifier.initialize(requireContext())
+        sirenClassifier.setDetectorListener(this)
         snapClassifier = SnapClassifier()
         snapClassifier.initialize(requireContext())
         snapClassifier.setDetectorListener(this)
@@ -46,22 +49,22 @@ class AudioFragment: Fragment(), SnapClassifier.DetectorListener {
 
     override fun onPause() {
         super.onPause()
-        snapClassifier.stopInferencing()
+        sirenClassifier.stopInferencing()
     }
 
     override fun onResume() {
         super.onResume()
-        snapClassifier.startInferencing()
+        sirenClassifier.startInferencing()
     }
 
     override fun onResults(score: Float) {
         activity?.runOnUiThread {
-            if (score > SnapClassifier.THRESHOLD) {
-                snapView.text = "SNAP"
+            if (score > SirenClassifier.THRESHOLD) {
+                snapView.text = "SIREN: YIELD TO EMERGENCY VEHICLE"
                 snapView.setBackgroundColor(ProjectConfiguration.activeBackgroundColor)
                 snapView.setTextColor(ProjectConfiguration.activeTextColor)
             } else {
-                snapView.text = "NO SNAP"
+                snapView.text = "NO SIREN: GOOD TO GO"
                 snapView.setBackgroundColor(ProjectConfiguration.idleBackgroundColor)
                 snapView.setTextColor(ProjectConfiguration.idleTextColor)
             }
