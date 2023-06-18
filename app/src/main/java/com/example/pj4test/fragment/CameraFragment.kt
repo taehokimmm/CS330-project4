@@ -35,11 +35,13 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.example.drive.ProjectConfiguration
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import com.example.drive.cameraInference.EmergencyVehicleClassifier
 import com.example.drive.databinding.FragmentCameraBinding
+import com.example.drive.viewmodel.SharedViewModel
 import org.tensorflow.lite.task.vision.detector.Detection
 
 
@@ -47,6 +49,8 @@ class CameraFragment : Fragment(), EmergencyVehicleClassifier.DetectorListener {
     private val TAG = "CameraFragment"
 
     private var _fragmentCameraBinding: FragmentCameraBinding? = null
+
+    private lateinit var sharedViewModel: SharedViewModel
 
     private val fragmentCameraBinding
         get() = _fragmentCameraBinding!!
@@ -87,6 +91,8 @@ class CameraFragment : Fragment(), EmergencyVehicleClassifier.DetectorListener {
         emergencyVehicleClassifier = EmergencyVehicleClassifier()
         emergencyVehicleClassifier.initialize(requireContext())
         emergencyVehicleClassifier.setDetectorListener(this)
+        sharedViewModel = ViewModelProvider(requireActivity()).get(SharedViewModel::class.java)
+
 
         // Initialize our background executor
         cameraExecutor = Executors.newSingleThreadExecutor()
@@ -96,6 +102,8 @@ class CameraFragment : Fragment(), EmergencyVehicleClassifier.DetectorListener {
             // Set up the camera and its use cases
             setUpCamera()
         }
+
+        sharedViewModel.setIsRecording(false)
 
         personView = fragmentCameraBinding.PersonView
     }
@@ -156,6 +164,10 @@ class CameraFragment : Fragment(), EmergencyVehicleClassifier.DetectorListener {
                 preview,
                 imageAnalyzer
             )
+            val cameraControl = camera?.cameraControl
+            val fps = 15
+            cameraControl?.setExposureCompensationIndex(fps)
+
         } catch (exc: Exception) {
             Log.e(TAG, "Use case binding failed", exc)
         }
@@ -202,10 +214,12 @@ class CameraFragment : Fragment(), EmergencyVehicleClassifier.DetectorListener {
                 personView.text = "EMERGENCY VEHICLE DETECTED"
                 personView.setBackgroundColor(ProjectConfiguration.activeBackgroundColor)
                 personView.setTextColor(ProjectConfiguration.activeTextColor)
+                sharedViewModel.setIsRecording(true)
             } else {
                 personView.text = "EVERYTHING IS FINE"
                 personView.setBackgroundColor(ProjectConfiguration.idleBackgroundColor)
                 personView.setTextColor(ProjectConfiguration.idleTextColor)
+                sharedViewModel.setIsRecording(false)
             }
 
             // Force a redraw
