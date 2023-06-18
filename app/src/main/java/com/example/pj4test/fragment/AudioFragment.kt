@@ -6,14 +6,20 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import com.example.drive.ProjectConfiguration
 import com.example.drive.audioInference.SirenClassifier
 import com.example.drive.databinding.FragmentAudioBinding
+import com.example.drive.viewmodel.SharedViewModel
 
 class AudioFragment : Fragment(), SirenClassifier.DetectorListener {
     private val TAG = "AudioFragment"
 
+    private lateinit var sharedViewModel: SharedViewModel
+
     private var _fragmentAudioBinding: FragmentAudioBinding? = null
+
+    private var prevRecordStatus = false
 
     private val fragmentAudioBinding
         get() = _fragmentAudioBinding!!
@@ -37,14 +43,30 @@ class AudioFragment : Fragment(), SirenClassifier.DetectorListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        sharedViewModel = ViewModelProvider(requireActivity()).get(SharedViewModel::class.java)
         snapView = fragmentAudioBinding.SnapView
 
         sirenClassifier = SirenClassifier()
         sirenClassifier.initialize(requireContext())
         sirenClassifier.setDetectorListener(this)
-        snapClassifier = SnapClassifier()
-        snapClassifier.initialize(requireContext())
-        snapClassifier.setDetectorListener(this)
+
+        sharedViewModel.getIsRecording().observe(viewLifecycleOwner) {
+            if (it) {
+                if (!prevRecordStatus) {
+                    sirenClassifier.startRecording()
+                    onResume()
+                }
+                prevRecordStatus = true
+            } else {
+                if (prevRecordStatus) {
+                    onPause()
+                    sirenClassifier.stopRecording()
+                }
+                snapView.text = "MIC OFF - NO EMERGENCY VEHICLE DETECTED"
+
+                prevRecordStatus = false
+            }
+        }
     }
 
     override fun onPause() {
